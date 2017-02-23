@@ -1,0 +1,34 @@
+Traceback (most recent call last):
+  File "hello.py", line 11, in <module>
+    app.run(host='192.168.100.107:1007', debug=True)
+  File "/opt/monitor/monitor/lib/python2.7/site-packages/flask/app.py", line 841, in run
+    run_simple(host, port, self, **options)
+  File "/opt/monitor/monitor/lib/python2.7/site-packages/werkzeug/serving.py", line 689, in run_simple
+    s = socket.socket(address_family, socket.SOCK_STREAM)
+  File "/usr/local/lib/python2.7/socket.py", line 187, in __init__
+    _sock = _realsocket(family, type, proto)
+socket.error: [Errno 97] Address family not supported by protocol
+ * Running on http://192.168.100.107:1007/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger pin code: 589-597-717
+ * Running on http://192.168.100.107:1007/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger pin code: 589-597-717
+10.252.252.200 - - [07/Feb/2017 16:16:23] "GET / HTTP/1.1" 200 -
+10.252.252.200 - - [07/Feb/2017 16:16:23] "GET /favicon.ico HTTP/1.1" 404 -
+Traceback (most recent call last):
+  File "hello.py", line 11, in <module>
+    app.run(host='192.168.100.107', port=1007, debug=True)
+  File "/usr/local/lib/python2.7/site-packages/flask/app.py", line 841, in run
+    run_simple(host, port, self, **options)
+  File "/usr/local/lib/python2.7/site-packages/werkzeug/serving.py", line 691, in run_simple
+    s.bind((hostname, port))
+  File "/usr/local/lib/python2.7/socket.py", line 224, in meth
+    return getattr(self._sock,name)(*args)
+socket.error: [Errno 98] Address already in use
+10.11.15.218 - - [23/Feb/2017 17:01:51] "GET / HTTP/1.1" 200 -
+10.11.15.218 - - [23/Feb/2017 17:01:51] "GET /favicon.ico HTTP/1.1" 404 -
+10.11.15.218 - - [23/Feb/2017 17:11:54] "GET / HTTP/1.1" 200 -
+10.11.15.218 - - [23/Feb/2017 17:11:54] "GET / HTTP/1.1" 200 -
