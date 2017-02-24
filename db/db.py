@@ -23,6 +23,32 @@ class tomcat_url(db.Model):
         self.domain = domain
         self.url = url
 
+class mail(db.Model):
+    __tablename__ = 'mail'
+    id = db.Column(db.Integer,primary_key=True)
+    mail_address = db.Column(db.String(64),unique=True)
+    status = db.Column(db.String(64),unique=False)
+    def __init__(self, mail_address, status):
+        self.mail_address = mail_address
+        self.status = status
+
+class check_tomcat(db.Model):
+    __tablename__ = 'check_tomcat'
+    id = db.Column(db.Integer,primary_key=True)
+    access_time = db.Column(db.String(64), unique=False)
+    project = db.Column(db.String(64),unique=False)
+    domain = db.Column(db.String(128),unique=False)
+    url = db.Column(db.String(128),unique=False)
+    code = db.Column(db.String(8), unique=False)
+    info = db.Column(db.String(1024),unique=False)
+    def __init__(self, access_time, project, domain, url, code, info):
+        self.access_time = access_time
+        self.project = project
+        self.domain = domain
+        self.url = url
+        self.code = code
+        self.info = info
+
 if __name__ == '__main__':
    db.create_all()
 

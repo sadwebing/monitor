@@ -16,7 +16,7 @@ fi
 
 if [ "${md5_now}" != "${md5_1min}" ];then
     #echo `date` 3 $md5_now $md5_1min >> /tmp/a.txt
-    /usr/local/bin/python ${basedir}/update_tomcat_info.py
+    /usr/local/bin/python ${basedir}/update_table.py tomcat_url
     #echo `date` 4 $md5_now $md5_1min >> /tmp/a.txt
     echo ${md5_now} > ${basedir}/md5_1min.txt
     #echo `date` 5 $md5_now $md5_1min >> /tmp/a.txt
