@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 #-_- coding:utf-8 -_-
-import os,sys,smtplib,requests,datetime
-sys.path.append(os.path.dirname(os.getcwd()))
+import re,os,sys,smtplib,requests,datetime
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 from db import db
 from manage import logging,basedir
 from email.mime.text import MIMEText
@@ -9,11 +9,12 @@ from email.header import Header
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-server = 'http://192.168.100.107:9990/tomcat_result'
+server = 'http://zabbix.ag866.com:9990/tomcat_result'
+requests.adapters.DEFAULT_RETRIES = 3
 
 def send_mail(to_list,sub,content):
     sender = 'monitor@ag866.com'
-    msg = MIMEText(str(content),'plain','utf-8')#中文需参数‘utf-8’，单字节字符不需要  
+    msg = MIMEText(str(content),'html','utf-8')#中文需参数‘utf-8’，单字节字符不需要  
     msg['Subject'] = Header(sub, 'utf-8')
     msg['From'] = sender
     msg['To'] = ';'.join(to_list)
@@ -28,17 +29,14 @@ def send_mail(to_list,sub,content):
         logging.error('[failed]mail from %s, mail to %s, %s' %(sender, to_list, content))
         return False
 
-tomcat_error_list = []
-mail_list = []
-result_list = []
-code_list = ['200', '302', '405']
 def get_mail_list(list_name):
     url_all = db.mail.query.all()
     for mail_info in url_all:
         if mail_info.status == 'active':
             list_name.append(mail_info.mail_address)
+    logging.info('get mail_list successful.')
     #return mail_list
-def check_tomcat():
+def check_tomcat(context_body):
     url_all = db.tomcat_url.query.all()
     for tomcat_info in url_all:
         result = {}
@@ -46,16 +44,67 @@ def check_tomcat():
         result['project'] = tomcat_info.project
         result['domain'] = tomcat_info.domain
         result['url'] = tomcat_info.url
-        ret = requests.get(result['url'], headers={'Host': result['domain']})
-        result['code'] = ret.status_code
-        result['info'] = ''
-        #print result['code']
-        ret2 = requests.post(server, data=result)
+        try:
+            ret = requests.get(result['url'], headers={'Host': result['domain']}, timeout=connect_timeout)
+            result['code'] = ret.status_code
+            try:
+                title = re.search('<title>.*?</title>', ret.content)
+                result['info'] = title.group().replace('<title>', '').replace('</title>', '')
+            except AttributeError:
+                result['info'] = error_status
+        except requests.exceptions.ConnectionError:
+            result['code'] = error_status
+            result['info'] = error_status
+        print result['code']
+        server_status = db.monitor_server.query.order_by(db.monitor_server.id.desc()).first()
+        if server_status.status == '200':
+            try:
+                ret2 = requests.post(server, data=result, timeout=3)
+            except requests.exceptions.ConnectionError:
+                record = db.monitor_server(access_time=current_time, url=server, status=error_status, info='null')
+                db.db.session.add(record)
+                db.db.session.commit()
+                send_mail(mail_list, 'Server Down!', "%s 不可用！" %server)
+                logging.error('%s 不可用！' %server)
         if result['code'] not in code_list:
-            tomcat_error_list.append(result)
-        logging.info(result)
+            print result['code']
+            context_body = context_body + "<tr style=\"font-size:15px\"><td >%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" %(result['time'], result['project'], result['domain'], result['url'], result['code'], result['info'])
+        logging.info(MIMEText(str(result), 'utf-8'))
+    return context_body
 
 if __name__ == '__main__':
+    current_time = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+    error_status = 'null'
+    connect_timeout=10
+    mail_list = []
     get_mail_list(mail_list)
-    check_tomcat()
-    #send_mail(mail_list,'tomcat_status',result_list)
+    try:
+        ret = requests.get(server,timeout=2)
+        record = db.monitor_server(access_time=current_time, url=server, status=ret.status_code, info=ret.text)
+        db.db.session.add(record)
+        db.db.session.commit()
+    except requests.exceptions.ConnectionError:
+        record = db.monitor_server(access_time=current_time, url=server, status=error_status, info='null')
+        db.db.session.add(record)
+        db.db.session.commit()
+        send_mail(mail_list, 'Server Down!', "%s 不可用！" %server)
+        logging.error('%s 不可用！' %server)
+    #code_list = [200, 302]
+    code_list = [200, 302, 405]
+    content_head = """\
+    <html><head><title>HTML email</title></head><body>
+    <table  borderColor=red cellPadding=1 width=1000 border=1 cellspacing=\"1\" style=\"text-align:center;padding:1px\">
+    <tr style=\"font-size:14px\">
+    <th style="width:120px">时间</th> 
+    <th style="width:120px">工程</th> 
+    <th style="width:120px">域名</th> 
+    <th style="width:300px">路径</th> 
+    <th style="width:60px">状态</th> 
+    <th style="width:120px">备注</th>
+    </tr>
+    """
+    content_body=""
+    content_body = check_tomcat(content_body)
+    if content_body != "":
+        content = content_head + content_body + "</table></body></html>"
+        send_mail(mail_list,'tomcat报警',content)

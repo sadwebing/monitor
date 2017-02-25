@@ -1,0 +1,88 @@
+#!/usr/local/bin/python
+#-_- coding:utf-8 -_-
+import os,sys,logging
+#sys.path.append(os.path.dirname(os.getcwd()))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+from db import db
+from flask import request
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+    datefmt='%Y/%m/%d %H:%M:%S',
+    filename='%s/logs/monitor.log' %os.path.dirname(os.getcwd()),
+    filemode='a'
+)
+
+#获取当前目录
+current_dir = os.path.abspath(os.path.dirname(__file__))
+#print basedir
+
+tomcat_info_list = []
+mail_list = []
+def get_list(filename, list_name):
+    with open('%s/%s' %(current_dir,filename)) as f:
+        lines = f.readlines()
+    for line in lines:
+        if line == '\n' or '#' in line:
+            continue
+        else:
+            #print line.split('|')
+            list_name.append(line.replace('\n', '').split('|'))
+
+def update_tomcat_url():
+    get_list('tomcat_info.txt', tomcat_info_list)
+    for url_info in tomcat_info_list:
+        if len(url_info) != 3:
+            continue
+        else:
+            tomcat = db.tomcat_url.query.filter_by(url=url_info[0]).first()
+            try:
+                tomcat.url = url_info[0]
+                tomcat.project = url_info[1]
+                tomcat.domain = url_info[2]
+                db.db.session.commit()
+            except AttributeError:
+                inset = db.tomcat_url(project=url_info[1], url=url_info[0],domain=url_info[2])
+                db.db.session.add(inset)
+                db.db.session.commit()
+def update_mail():
+    get_list('mail.txt', mail_list)
+    for mail_info in mail_list:
+        if len(mail_info) != 4:
+            continue
+        else:
+            mail = db.mail.query.filter_by(mail_address=mail_info[1]).first()
+            try:
+                mail.name = mail_info[0]
+                mail.mail_address = mail_info[1]
+                mail.status = mail_info[2]
+                mail.role = mail_info[3]
+                db.db.session.commit()
+            except AttributeError:
+                inset = db.mail(name=mail_info[0], mail_address=mail_info[1], status=mail_info[2], role=mail_info[3])
+                db.db.session.add(inset)
+                db.db.session.commit()
+def update_check_tomcat():
+    data = request.form 
+    result = db.check_tomcat(
+        time = data.get('time'),
+        project = data.get('project'),
+        domain = data.get('domain'),
+        url = data.get('url'),
+        code = data.get('code')
+    )
+    db.db.session.add(result)
+    db.db.session.commit()
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        logging.error('No table specified.')
+    elif sys.argv[1] == 'tomcat_url':
+        logging.info('update table tomcat_url.')
+        update_tomcat_url()
+    elif sys.argv[1] == 'mail':
+        logging.info('update table mail.')
+        update_mail()
+    else:
+        logging.error('talbe %s doesn\'t exit.' %sys.argv[0])

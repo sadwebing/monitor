@@ -691,3 +691,13 @@ Traceback (most recent call last):
   File "/usr/local/lib/python2.7/site-packages/flask/app.py", line 1051, in add_url_rule
     'existing endpoint function: %s' % endpoint)
 AssertionError: View function mapping is overwriting an existing endpoint function: curl_result
+/usr/local/lib/python2.7/site-packages/sqlalchemy/engine/default.py:470: Warning: Data truncated for column 'info' at row 1
+  cursor.execute(statement, parameters)
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    from db import db
+  File "/opt/monitor/monitor/monitor/db/db.py", line 33, in <module>
+    class mail(db.Model):
+  File "/opt/monitor/monitor/monitor/db/db.py", line 35, in mail
+    id = db.Column(db.Integer,primary_key=True,autoincrement=false)
+NameError: name 'false' is not defined
