@@ -701,3 +701,44 @@ Traceback (most recent call last):
   File "/opt/monitor/monitor/monitor/db/db.py", line 35, in mail
     id = db.Column(db.Integer,primary_key=True,autoincrement=false)
 NameError: name 'false' is not defined
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    from db import db
+  File "/opt/monitor/db/db.py", line 5, in <module>
+    from flask_sqlalchemy import SQLAlchemy 
+ImportError: No module named flask_sqlalchemy
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    from db import db
+  File "/opt/monitor/db/db.py", line 5, in <module>
+    from flask_sqlalchemy import SQLAlchemy 
+ImportError: No module named flask_sqlalchemy
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    from db import db
+  File "/opt/monitor/db/db.py", line 5, in <module>
+    from flask_sqlalchemy import SQLAlchemy 
+ImportError: No module named flask_sqlalchemy
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    from db import db
+  File "/opt/monitor/db/db.py", line 6, in <module>
+    from flask_migrate import Migrate, MigrateCommand
+ImportError: No module named flask_migrate
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    from db import db
+  File "/opt/monitor/db/db.py", line 8, in <module>
+    import setting
+  File "/opt/monitor/db/setting.py", line 14
+    HOST=192.168.100.107
+                   ^
+SyntaxError: invalid syntax
+Traceback (most recent call last):
+  File "manage.py", line 67, in <module>
+    app.run(host=app.host, port=app.port, debug=app.debug)
+AttributeError: 'Flask' object has no attribute 'host'
+Traceback (most recent call last):
+  File "manage.py", line 67, in <module>
+    app.run(host=app.config.get_namespace('HOST')[''], port=app.config.get_namespace('PORT')[''], debug=app.debug)
+KeyError: ''

@@ -3,19 +3,7 @@ from flask import Flask,request
 import requests,logging
 import os,sys
 from db import db
-basedir = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(basedir)
-#from scripts import update_table
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-    datefmt='%Y/%m/%d %H:%M:%S',
-    filename='%s/logs/monitor.log' %basedir,
-    filemode='a'
-)
-
-app = Flask(__name__)
+app = db.app
 
 @app.route('/curl_result', methods=['GET','POST'])
 def curl_result():
@@ -52,17 +40,7 @@ def update_check_tomcat():
     )
     db.db.session.add(result)
     db.db.session.commit()
-    #print type(data.getlist('time')), 
-    #print data.getlist('time')
-    #print type(data.getlist('project')), 
-    #print data.getlist('project')
-    #print type(data.getlist('domain')), 
-    #print data.getlist('domain')
-    #print type(data.getlist('url')), 
-    #print data.getlist('url')
-    #print type(data.get('code')), 
-    #print data.get('code')
 
 if __name__ == '__main__':
-    app.run(host='192.168.100.107', port=9990, debug=True)
+    app.run(host=app.config.get('HOST'), port=app.config.get('PORT'), debug=app.debug)
 

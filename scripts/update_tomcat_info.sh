@@ -1,6 +1,5 @@
 #!/bin/bash
 source ~/.bash_profile
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 basedir=$(cd $(dirname $0); pwd)
 md5_now=$(/usr/bin/md5sum ${basedir}/tomcat_info.txt |awk '{print $1}')

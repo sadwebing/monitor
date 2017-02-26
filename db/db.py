@@ -5,14 +5,14 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy 
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from alembic import op
-import sqlalchemy as sa
+import setting
 
 app = Flask(__name__)
+app.config.from_object(setting)
 #app.config['SECRET_KEY'] = 'ag866.com'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://check_tomcat:ag866.com@localhost:3306/check_tomcat'
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://check_tomcat:ag866.com@localhost:3306/check_tomcat'
+#app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app) #实例化
 migrate = Migrate(app, db)
 manager = Manager(app)

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr//bin/env python
 #-_- coding:utf-8 -_-
 import os,sys,logging
 #sys.path.append(os.path.dirname(os.getcwd()))
