@@ -6,14 +6,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardi
 from db import db
 from flask import request
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-    datefmt='%Y/%m/%d %H:%M:%S',
-    filename='%s/logs/monitor.log' %os.path.dirname(os.getcwd()),
-    filemode='a'
-)
-
 #获取当前目录
 current_dir = os.path.abspath(os.path.dirname(__file__))
 #print basedir

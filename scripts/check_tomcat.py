@@ -1,9 +1,8 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 #-_- coding:utf-8 -_-
-import re,os,sys,smtplib,requests,datetime
+import re,os,sys,smtplib,requests,datetime,logging
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 from db import db
-from manage import logging,basedir
 from email.mime.text import MIMEText
 from email.header import Header
 reload(sys)
