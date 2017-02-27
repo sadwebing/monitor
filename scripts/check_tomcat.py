@@ -8,6 +8,7 @@ from email.header import Header
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 server = 'http://zabbix.ag866.com:9990/tomcat_result'
 requests.adapters.DEFAULT_RETRIES = 3
 
@@ -71,23 +72,36 @@ def check_tomcat(context_body):
         logging.info(MIMEText(str(result), 'utf-8'))
     return context_body
 
+def time():
+    current_time = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+    return current_time
+
+def check_monitor_server():
+    try:
+        ret = requests.get(server,timeout=2)
+        record = db.monitor_server(access_time=time(), url=server, status=ret.status_code, info=ret.text)
+        db.db.session.add(record)
+        db.db.session.commit()
+        return True
+    except requests.exceptions.ConnectionError:
+        record = db.monitor_server(access_time=time(), url=server, status=error_status, info='null')
+        db.db.session.add(record)
+        db.db.session.commit()
+        return False
+
 if __name__ == '__main__':
     current_time = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
     error_status = 'null'
     connect_timeout=10
     mail_list = []
     get_mail_list(mail_list)
-    try:
-        ret = requests.get(server,timeout=2)
-        record = db.monitor_server(access_time=current_time, url=server, status=ret.status_code, info=ret.text)
-        db.db.session.add(record)
-        db.db.session.commit()
-    except requests.exceptions.ConnectionError:
-        record = db.monitor_server(access_time=current_time, url=server, status=error_status, info='null')
-        db.db.session.add(record)
-        db.db.session.commit()
+    if not check_monitor_server():
+        os.system('nohup python %s/manage.py &' %basedir)
         send_mail(mail_list, 'Server Down!', "%s 不可用！" %server)
         logging.error('%s 不可用！' %server)
+        if not check_monitor_server():
+            send_mail(mail_list, 'Server is unable to start, pls check!', "%s 服务起不来！" %server)
+            logging.error('%s 服务起不来！' %server)
     #code_list = [200, 302]
     code_list = [200, 302, 405]
     content_head = """\

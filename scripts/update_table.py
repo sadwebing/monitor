@@ -31,10 +31,10 @@ def update_tomcat_project():
     db.db.session.commit()
     db.db.engine.execute('alter table tomcat_project AUTO_INCREMENT=1; ')
     for tomcat_info in tomcat_project_list:
-        if len(tomcat_info) != 6:
+        if len(tomcat_info) != 7:
             continue
         else:
-            inset = db.tomcat_project(product=tomcat_info[0], project=tomcat_info[1], tomcat=tomcat_info[2], main_port=tomcat_info[3], script=tomcat_info[4], jdk=tomcat_info[5])
+            inset = db.tomcat_project(product=tomcat_info[0], project=tomcat_info[1], code_dir=tomcat_info[2], tomcat=tomcat_info[3], main_port=tomcat_info[4], script=tomcat_info[5], jdk=tomcat_info[6])
             db.db.session.add(inset)
     db.db.session.commit()
 
