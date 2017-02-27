@@ -23,13 +23,15 @@ class tomcat_project(db.Model):
     id = db.Column(db.Integer,primary_key=True)#定义列对象
     product = db.Column(db.String(10),unique=False)
     project = db.Column(db.String(32),unique=True)
+    code_dir = db.Column(db.String(32),unique=False)
     tomcat = db.Column(db.String(64),unique=False)
     main_port = db.Column(db.String(10),unique=False)
     jdk = db.Column(db.String(10),unique=False)
     script = db.Column(db.String(64),unique=False)
-    def __init__(self,product, project, tomcat, main_port, jdk, script):
+    def __init__(self,product, project, code_dir, tomcat, main_port, jdk, script):
         self.product = product
         self.project = project
+        self.code_dir = code_dir
         self.tomcat = tomcat
         self.main_port = main_port
         self.jdk = jdk

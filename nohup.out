@@ -742,3 +742,5 @@ Traceback (most recent call last):
   File "manage.py", line 67, in <module>
     app.run(host=app.config.get_namespace('HOST')[''], port=app.config.get_namespace('PORT')[''], debug=app.debug)
 KeyError: ''
+  File "manage.py", line 44
+SyntaxError: Non-ASCII character '\xe6' in file manage.py on line 44, but no encoding declared; see http://python.org/dev/peps/pep-0263/ for details
