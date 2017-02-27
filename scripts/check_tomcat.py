@@ -3,6 +3,7 @@
 import re,os,sys,smtplib,requests,datetime,logging
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 from db import db
+from time import sleep
 from email.mime.text import MIMEText
 from email.header import Header
 reload(sys)
@@ -99,6 +100,7 @@ if __name__ == '__main__':
         os.system('nohup python %s/manage.py &' %basedir)
         send_mail(mail_list, 'Server Down!', "%s 不可用！" %server)
         logging.error('%s 不可用！' %server)
+        sleep(3)
         if not check_monitor_server():
             send_mail(mail_list, 'Server is unable to start, pls check!', "%s 服务起不来！" %server)
             logging.error('%s 服务起不来！' %server)
