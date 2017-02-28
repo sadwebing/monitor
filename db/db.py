@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #-_- coding:utf-8 -_-
-from flask import Flask
+from flask import Flask, current_app
 #from flask.ext.sqlalchemy import SQLAlchemy 
 from flask_sqlalchemy import SQLAlchemy 
 from flask_migrate import Migrate, MigrateCommand
@@ -8,6 +8,7 @@ from flask_script import Manager
 import setting
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask_login import UserMixin
 import json
 import uuid
@@ -93,12 +94,23 @@ class monitor_server(db.Model):
         self.status = status
         self.info = info
 
-PROFILE_FILE = "profiles.json"
-class User(UserMixin):
-    def __init__(self, username):
-        self.username = username
-        self.password_hash = self.get_password_hash()
-        self.id = self.get_id()
+class Role(db.Model):
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    users = db.relationship('User', backref='role', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Role %r>' % self.name
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, index=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    password_hash = db.Column(db.String(128))
+    confirmed = db.Column(db.Boolean, default=False)
 
     @property
     def password(self):
@@ -106,74 +118,57 @@ class User(UserMixin):
 
     @password.setter
     def password(self, password):
-        """save user name, id and password hash to json file"""
         self.password_hash = generate_password_hash(password)
-        with open(PROFILE_FILE, 'w+') as f:
-            try:
-                profiles = json.load(f)
-            except ValueError:
-                profiles = {}
-            profiles[self.username] = [self.password_hash,
-                                       self.id]
-            f.write(json.dumps(profiles))
 
     def verify_password(self, password):
-        if self.password_hash is None:
-            return False
         return check_password_hash(self.password_hash, password)
 
-    def get_password_hash(self):
-        """try to get password hash from file.
+    def generate_confirmation_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'confirm': self.id})
 
-        :return password_hash: if the there is corresponding user in
-                the file, return password hash.
-                None: if there is no corresponding user, return None.
-        """
+    def confirm(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
         try:
-            with open(PROFILE_FILE) as f:
-                user_profiles = json.load(f)
-                user_info = user_profiles.get(self.username, None)
-                if user_info is not None:
-                    return user_info[0]
-        except IOError:
-            return None
-        except ValueError:
-            return None
-        return None
-
-    def get_id(self):
-        """get user id from profile file, if not exist, it will
-        generate a uuid for the user.
-        """
-        if self.username is not None:
-            try:
-                with open(PROFILE_FILE) as f:
-                    user_profiles = json.load(f)
-                    if self.username in user_profiles:
-                        return user_profiles[self.username][1]
-            except IOError:
-                pass
-            except ValueError:
-                pass
-        return unicode(uuid.uuid4())
-
-    @staticmethod
-    def get(user_id):
-        """try to return user_id corresponding User object.
-        This method is used by load_user callback function
-        """
-        if not user_id:
-            return None
-        try:
-            with open(PROFILE_FILE) as f:
-                user_profiles = json.load(f)
-                for user_name, profile in user_profiles.iteritems():
-                    if profile[1] == user_id:
-                        return User(user_name)
+            data = s.loads(token)
         except:
-            return None
-        return None
+            return False
+        if data.get('confirm') != self.id:
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        db.session.commit()
+        return True
+###########################################################
+    def generate_reset_token(self, expiration=3600):
+    #增加generate_reset_token方法，用来生成用户的id的加密签名
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        #先产生个Serializer类的实例，里面设置好密钥和过期时间
+        return s.dumps({'reset': self.id}) 
+        #返回一个加密签名
 
+    def reset_password(self, token, new_password):
+    #增加更改密码的方法，接受token加密签名，新密码
+        s = Serializer(current_app.config['SECRET_KEY'])
+        #产生实例s
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        #试着解析加密签名，得到字典data，否则返回False
+        if data.get('reset') != self.id:
+            return False
+        #如果data字典中的reset的值不等于用户的id，返回False
+        self.password = new_password
+        #否则，更新用户密码
+        db.session.add(self)
+        #提交到数据库
+        return True
+        #返回True
+
+    def __repr__(self):
+        return '<User %r>' % self.username
+#########################################################
 
 if __name__ == '__main__':
    #db.create_all()

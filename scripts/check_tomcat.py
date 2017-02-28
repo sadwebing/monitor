@@ -70,7 +70,7 @@ def check_tomcat(context_body):
         if result['code'] not in code_list:
             print result['code']
             context_body = context_body + "<tr style=\"font-size:15px\"><td >%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" %(result['time'], result['project'], result['domain'], result['url'], result['code'], result['info'])
-        logging.info(MIMEText(str(result), 'utf-8'))
+        #logging.info(MIMEText(str(result), 'utf-8'))
     return context_body
 
 def time():

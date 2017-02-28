@@ -14,6 +14,7 @@
           {{ form.password(size=80) }}<br>
       </p>
       <p>{{ form.remember_me }} Remember Me</p>
-      <p><input type="submit" value="Sign In"></p>
+      <p>New user? <a href="{{ url_for('register') }}">Click here to register</a>.</p>
+      <p><input type="submit" value="Login"></p>
   </form>
 {% endblock %}
